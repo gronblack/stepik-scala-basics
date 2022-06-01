@@ -4,7 +4,7 @@ import scala.annotation.tailrec
 
 object step63 {
   def add(network: Map[String, Set[String]], location: String): Map[String, Set[String]] = {
-    network + (location -> Set.empty)
+    network + (location -> Set())
   }
 
   def remove(network: Map[String, Set[String]], location: String): Map[String, Set[String]] = {
@@ -22,7 +22,7 @@ object step63 {
   }
 
   def disconnect(network: Map[String, Set[String]], pointA: String, pointB: String): Map[String, Set[String]] = {
-    network - pointA - pointB
+    network + (pointA -> (network(pointA) - pointB)) + (pointB -> (network(pointB) - pointA))
   }
 
   def nFlights(network: Map[String, Set[String]], location: String): Int = {
@@ -32,7 +32,7 @@ object step63 {
   def mostFlights(network: Map[String, Set[String]]): String = {
     network
       .toList
-      .sortWith((pointA, pointB) => (pointA._2.size compare pointB._2.size) > 0)
+      .sortWith((pointA, pointB) => pointA._2.size > pointB._2.size)
       .head._1
   }
 

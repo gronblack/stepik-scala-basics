@@ -1,4 +1,6 @@
 import scala.annotation.tailrec
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object main extends App {
   import playground.step63._
@@ -19,8 +21,19 @@ object main extends App {
     buildNetwork(add(network, locations.head), locations.tail)
   }
 
-  val network = buildNetwork(Map.empty, locations)
-  val connected = connect(network, "5", "11")
-  println(network)
-  println(connected)
+  val initialNetwork = buildNetwork(Map.empty, locations)
+  val connected = Future.successful(connect(initialNetwork, "5", "11"))
+    .map(connect(_, "5", "9"))
+    .map(connect(_, "11", "7"))
+    .map(connect(_, "11", "3"))
+    .map(connect(_, "11", "5"))
+
+  connected.foreach { network =>
+    println(network)
+    println(mostFlights(network))
+    println(nLocationsWithNoFlights(network))
+    println(isConnected(network, "3", "5"))
+    println(isConnected(network, "3", "8"))
+  }
+
 }
