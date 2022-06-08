@@ -20,6 +20,16 @@ object main extends App {
         TreeEnd,
         TreeEnd)))
 
-  println(tree)
-  println(tree.collectLeaves.map(_.value).sortWith((a, b) => a < b))
+//  println(tree)
+//  println(tree.collectLeaves.map(_.value).sortWith((a, b) => a < b))
+//  println(tree.countLeaves)
+//  println(tree.nodesAtLevel(0))
+//  println(tree.nodesAtLevel(1))
+//  println(tree.nodesAtLevel(2))
+//  println(tree.nodesAtLevel(3))
+  //println(tree.collectNodes())
+  println(tree.hasPath(tree, 7))
+  println(tree.hasPath(tree, 3))
+  println(tree.hasPath(tree, 16))
+  println(TreeEnd.hasPath(tree, 16))
 }
