@@ -133,6 +133,42 @@ object step71 {
       false
     }
 
+    def findAllPaths(tree: BinaryTree[String], target: String): List[List[String]] = {
+      case class NodeWithParent[A](node: BinaryTree[A], parent: NodeWithParent[A])
+
+      if (tree == TreeEnd) return List.empty
+
+      val leaves = {
+        val queue = scala.collection.mutable.Queue[NodeWithParent[String]](NodeWithParent(tree, null))
+        val leaves = scala.collection.mutable.Queue[NodeWithParent[String]]()
+        while (queue.nonEmpty) {
+          val current = queue.dequeue()
+          if (current.node.isLeaf) leaves.enqueue(current)
+          if (!current.node.leftChild.isEmpty) queue.enqueue(NodeWithParent(current.node.leftChild, current))
+          if (!current.node.rightChild.isEmpty) queue.enqueue(NodeWithParent(current.node.rightChild, current))
+        }
+        leaves.toList
+      }
+
+      def checkLeavePath(leave: NodeWithParent[String]): List[String] = {
+        var current = leave
+        var currentSum = 0
+        val path = scala.collection.mutable.ListBuffer.empty[String]
+        while (true) {
+          if (current == null) return List.empty
+
+          currentSum += current.node.value.toInt
+          path.prepend(current.node.value)
+
+          if (currentSum == target.toInt && current.parent == null) return path.toList
+          current = current.parent
+        }
+        List.empty
+      }
+
+      leaves.map(checkLeavePath).filter(_.nonEmpty)
+    }
+
     /*
     override def hasPath(tree: BinaryTree[Int], target: Int): Boolean = {
       val allNodesLength = {
