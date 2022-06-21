@@ -1,7 +1,5 @@
 package playground
 
-import scala.annotation.tailrec
-
 object step71 {
   abstract class BinaryTree[+T] {
     def value: T
@@ -72,15 +70,15 @@ object step71 {
     override def countLeaves: Int = collectLeaves.size
 
     override def nodesAtLevel(level: Int): List[BinaryTree[T]] = {
-      case class node(level: Int, value: BinaryTree[T])
+      case class Node(level: Int, value: BinaryTree[T])
       val nodes = scala.collection.mutable.ListBuffer[BinaryTree[T]]()
-      val queue = scala.collection.mutable.Queue[node](node(0, this))
+      val queue = scala.collection.mutable.Queue[Node](Node(0, this))
 
       while (queue.nonEmpty) {
         val current = queue.dequeue()
         if (current.level == level) nodes.append(current.value)
-        if (!current.value.leftChild.isEmpty) queue.enqueue(node(current.level + 1, current.value.leftChild))
-        if (!current.value.rightChild.isEmpty) queue.enqueue(node(current.level + 1, current.value.rightChild))
+        if (!current.value.leftChild.isEmpty) queue.enqueue(Node(current.level + 1, current.value.leftChild))
+        if (!current.value.rightChild.isEmpty) queue.enqueue(Node(current.level + 1, current.value.rightChild))
       }
       nodes.toList
     }
@@ -98,107 +96,35 @@ object step71 {
       nodes.toList
     }
 
-    override def hasPath(tree: BinaryTree[Int], target: Int): Boolean = {
-      case class NodeWithParent[A](node: BinaryTree[A], parent: NodeWithParent[A])
-
-      if (tree == TreeEnd) return false
-
-      val leaves = {
-        val queue = scala.collection.mutable.Queue[NodeWithParent[Int]](NodeWithParent(tree, null))
-        val leaves = scala.collection.mutable.Queue[NodeWithParent[Int]]()
-        while (queue.nonEmpty) {
-          val current = queue.dequeue()
-          if (current.node.isLeaf) leaves.enqueue(current)
-          if (!current.node.leftChild.isEmpty) queue.enqueue(NodeWithParent(current.node.leftChild, current))
-          if (!current.node.rightChild.isEmpty) queue.enqueue(NodeWithParent(current.node.rightChild, current))
+    def hasPath(tree: BinaryTree[Int], target: Int): Boolean = {
+      def rec (acc: Int, tr: BinaryTree[Int]): Boolean =
+        tr match {
+          case _ if tr.isEmpty => acc==target
+          case _ if tr.isLeaf => (tr.value + acc) == target
+          case _ => rec(tr.value+acc,tr.rightChild)||rec(tr.value+acc,tr.leftChild)
         }
-        leaves
-      }
 
-      def checkLeave(leave: NodeWithParent[Int]): Boolean = {
-        var current = leave
-        var currentSum = 0
-        while (true) {
-          if (current == null) return false
-          currentSum += current.node.value
-          if (currentSum == target) return true
-          current = current.parent
-        }
-        false
-      }
-
-      while (leaves.nonEmpty) {
-        if (checkLeave(leaves.dequeue())) return true
-      }
-      false
+      rec(0,tree)
     }
 
     def findAllPaths(tree: BinaryTree[String], target: String): List[List[String]] = {
-      case class NodeWithParent[A](node: BinaryTree[A], parent: NodeWithParent[A])
+      case class PathAndSum(path: List[String], sum: Int)
 
-      if (tree == TreeEnd) return List.empty
+      def loop(acc: Int, path: List[String], allPaths: List[PathAndSum], node: BinaryTree[String]): List[PathAndSum] = {
+        if (node == TreeEnd) return List.empty
 
-      val leaves = {
-        val queue = scala.collection.mutable.Queue[NodeWithParent[String]](NodeWithParent(tree, null))
-        val leaves = scala.collection.mutable.Queue[NodeWithParent[String]]()
-        while (queue.nonEmpty) {
-          val current = queue.dequeue()
-          if (current.node.isLeaf) leaves.enqueue(current)
-          if (!current.node.leftChild.isEmpty) queue.enqueue(NodeWithParent(current.node.leftChild, current))
-          if (!current.node.rightChild.isEmpty) queue.enqueue(NodeWithParent(current.node.rightChild, current))
+        if (node.isLeaf) {
+          PathAndSum(node.value :: path, node.value.toInt + acc) :: allPaths
+        } else {
+          val newAcc = node.value.toInt + acc
+          val newPath = node.value :: path
+          loop(newAcc, newPath, allPaths, node.leftChild) ++ loop(newAcc, newPath, allPaths, node.rightChild)
         }
-        leaves.toList
       }
-
-      def checkLeavePath(leave: NodeWithParent[String]): List[String] = {
-        var current = leave
-        var currentSum = 0
-        val path = scala.collection.mutable.ListBuffer.empty[String]
-        while (true) {
-          if (current == null) return List.empty
-
-          currentSum += current.node.value.toInt
-          path.prepend(current.node.value)
-
-          if (currentSum == target.toInt && current.parent == null) return path.toList
-          current = current.parent
-        }
-        List.empty
-      }
-
-      leaves.map(checkLeavePath).filter(_.nonEmpty)
+      loop(0, List.empty, List.empty, tree)
+        .filter(_.sum == target.toInt)
+        .map(_.path.reverse)
     }
-
-    /*
-    override def hasPath(tree: BinaryTree[Int], target: Int): Boolean = {
-      val allNodesLength = {
-        val queue = scala.collection.mutable.Queue[BinaryTree[Int]](tree)
-        val nodes = scala.collection.mutable.ListBuffer[Int]()
-        while (queue.nonEmpty) {
-          val current = queue.dequeue()
-          nodes.append(current.value)
-          if (!current.leftChild.isEmpty) queue.enqueue(current.leftChild)
-          if (!current.rightChild.isEmpty) queue.enqueue(current.rightChild)
-        }
-        nodes.toList
-      }.length
-
-      def loop[A <: BinaryTree[Int]](current: A, sum: Int, visitedNodesCount: Int): Boolean = {
-        if (current == TreeEnd) return false
-        val currentSum = current.value + sum
-        if (current.isLeaf && currentSum == target) return true
-        if (visitedNodesCount + 1 == allNodesLength) return false
-
-        val left = if (current.leftChild.isEmpty) false
-        else loop(current.leftChild, currentSum, visitedNodesCount + 1)
-
-        val right = if (current.rightChild.isEmpty) false
-        else loop(current.rightChild, currentSum, visitedNodesCount + 1)
-        left || right
-      }
-      loop(tree, 0, 0)
-    }
-    */
 
   }
 }
