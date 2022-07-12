@@ -1,6 +1,15 @@
 
 object main extends App {
-  import playground.step33._
+  import advanced.playground.step23._
 
-  countNumbers("9-888-543-21-09")
+  val data = JsonObject(Map(
+    "name" -> JsonString("Bob"),
+    "items" -> JsonArray(
+      List(
+        JsonInteger(1),
+        JsonString("Stuff to buy"),
+        JsonArray(List(JsonString("oneElem"), JsonString("twoElem"))))
+    )
+  ))
+  println(data.stringify)
 }
